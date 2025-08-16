@@ -1,0 +1,40 @@
+// routes/auth.js
+import express from "express";
+import {
+  getAccount,
+  loginFaceBook,
+  logout,
+  RefreshTokenUser,
+} from "../controllers/auth.js";
+import passport from "../config/passport.js";
+import { verifyToken } from "../middlewares/Auth.js";
+
+const AuthRouter = express.Router();
+
+// Route bắt đầu đăng nhập Facebook
+AuthRouter.get(
+  "/facebook",
+  passport.authenticate("facebook", {
+    scope: [
+      "public_profile",
+      "email",
+      "pages_manage_posts",
+      "pages_read_engagement",
+      "pages_show_list",
+    ],
+  })
+);
+
+AuthRouter.get(
+  "/facebook/callback",
+  passport.authenticate("facebook", {
+    session: false,
+    failWithError: true,
+  }),
+  loginFaceBook
+);
+AuthRouter.post("/refresh-token", RefreshTokenUser);
+AuthRouter.get("/me", verifyToken, getAccount);
+AuthRouter.post("/logout", logout);
+
+export default AuthRouter;
