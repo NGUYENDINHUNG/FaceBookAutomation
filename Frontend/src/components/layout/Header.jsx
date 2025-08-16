@@ -130,7 +130,7 @@ const Header = () => {
                     </Button>
                   </div>
                 ) : user && (
-                  <div className="flex items-center space-x-3 border-l pl-4" ref={dropdownRef}>
+                  <div className="flex items-center space-x-3 border-l pl-4 relative" ref={dropdownRef}>
                     <div 
                       className="flex items-center space-x-2 cursor-pointer"
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -165,7 +165,13 @@ const Header = () => {
 
                     {/* Dropdown Menu */}
                     {isDropdownOpen && (
-                      <div className="absolute right-0 mt-32 w-48 bg-white rounded-lg shadow-lg py-1 border border-gray-100">
+                      <>
+                        {/* Backdrop để đóng dropdown khi click outside */}
+                        <div 
+                          className="fixed inset-0 z-40"
+                          onClick={() => setIsDropdownOpen(false)}
+                        />
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl py-1 border border-gray-100 z-50 transform transition-all duration-200 ease-out">
                         <div className="px-4 py-2 border-b">
                           <p className="text-sm font-medium text-gray-900">{user.name || 'Người dùng'}</p>
                           <p className="text-sm text-gray-500 truncate">{user.email || 'Không có email'}</p>
@@ -199,6 +205,7 @@ const Header = () => {
                           <span>Đăng xuất</span>
                         </button>
                       </div>
+                      </>
                     )}
                   </div>
                 )}

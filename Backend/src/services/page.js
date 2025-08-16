@@ -3,6 +3,7 @@ import axios from "axios";
 import User from "../models/user.js";
 import Page from "../models/page.js";
 import { APIError } from "../constans/APIError.js";
+import { environment } from "../config/environment.js";
 
 export const getUserPages = async (userId) => {
   try {
@@ -13,7 +14,7 @@ export const getUserPages = async (userId) => {
     }
     //case2
     const response = await axios.get(
-      "https://graph.facebook.com/v18.0/me/accounts",
+      environment.FACEBOOK_API_URL + "/me/accounts",
       {
         params: {
           access_token: user.fbAccessToken,
@@ -60,4 +61,3 @@ export const getUserPages = async (userId) => {
     };
   }
 };
-

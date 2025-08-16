@@ -2,15 +2,6 @@ import passport from "passport";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import { environment } from "./environment.js";
 
-// const getCallbackURL = (provider) => {
-//   const baseURL =
-//     process.env.NODE_ENV === "production"
-//       ? process.env.SERVER_URL || "https://htn.io.vn"
-//       : "http://localhost:8000";
-
-//   return `${baseURL}/v1/api/auth/${provider}/callback`;
-// };
-
 passport.use(
   new FacebookStrategy(
     {

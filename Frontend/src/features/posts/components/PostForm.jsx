@@ -7,7 +7,7 @@ import { showToast } from '../../../utils/toastHelpers';
 const PostForm = ({ pageInfo, postData, isEditing = false, onSuccess }) => {
   const [content, setContent] = useState(postData?.content || '');
   const [privacy, setPrivacy] = useState(postData?.privacy || 'EVERYONE');
-  const [_selectedImages, setSelectedImages] = useState([]);
+  const [selectedImages, setSelectedImages] = useState([]);
   const [previews, setPreviews] = useState(
     postData?.media?.map(media => ({
       url: media.url,
@@ -16,13 +16,11 @@ const PostForm = ({ pageInfo, postData, isEditing = false, onSuccess }) => {
     })) || []
   );
   const [loading, setLoading] = useState(false);
-  // Thêm state cho lịch đăng
   const [isScheduled, setIsScheduled] = useState(postData?.status === 'scheduled');
   const [scheduledTime, setScheduledTime] = useState(
     postData?.scheduledTime ? new Date(postData.scheduledTime).toISOString().slice(0, 16) : ''
   );
 
-  // Giữ nguyên các hàm xử lý ảnh
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter(file =>
@@ -49,17 +47,12 @@ const PostForm = ({ pageInfo, postData, isEditing = false, onSuccess }) => {
   };
 
   const removeImage = (index) => {
-    // If it's an existing image, we need to handle it differently
-    const imageToRemove = previews[index];
-    if (imageToRemove.isExisting) {
-      // For existing images, just remove from preview
-      setPreviews(prev => prev.filter((_, i) => i !== index));
-    } else {
-      // For new images, remove from both selectedImages and previews
-      // Find the index in selectedImages that corresponds to this preview
-      const newImageIndex = previews.slice(0, index).filter(p => !p.isExisting).length;
+    setPreviews(prev => prev.filter((_, i) => i !== index));
+    
+    // Nếu xóa file mới, cập nhật selectedImages
+    if (previews[index]?.file) {
+      const newImageIndex = previews.slice(0, index).filter(p => p.file).length;
       setSelectedImages(prev => prev.filter((_, i) => i !== newImageIndex));
-      setPreviews(prev => prev.filter((_, i) => i !== index));
     }
   };
 
@@ -93,9 +86,9 @@ const PostForm = ({ pageInfo, postData, isEditing = false, onSuccess }) => {
 
   // Flow: Tạo post trước, lên lịch sau
   const handleSubmit = async (action = 'publish') => {
-    // Validate content
-    if (!content.trim()) {
-      showToast.error('Vui lòng nhập nội dung bài viết', '✍️');
+    // Validate content - cho phép đăng bài khi có text hoặc ảnh
+    if (!content.trim() && previews.length === 0) {
+      showToast.error('Vui lòng nhập nội dung bài viết hoặc thêm ảnh');
       return;
     }
 
@@ -106,13 +99,13 @@ const PostForm = ({ pageInfo, postData, isEditing = false, onSuccess }) => {
     }
 
     if (action === 'schedule' && !scheduledTime) {
-      showToast.error('Vui lòng chọn thời gian lên lịch', '⏰');
+      showToast.error('Vui lòng chọn thời gian lên lịch');
       return;
     }
 
     // Validate thời gian lên lịch
     if (action === 'schedule' && new Date(scheduledTime) <= new Date()) {
-      showToast.error('Thời gian lên lịch phải ở tương lai', '⏰');
+      showToast.error('Thời gian lên lịch phải ở tương lai',);
       return;
     }
 
@@ -124,32 +117,25 @@ const PostForm = ({ pageInfo, postData, isEditing = false, onSuccess }) => {
 
       if (isEditing) {
         // EDITING MODE: Update existing post
-        if (_selectedImages.length > 0) {
-          // Has new images - send FormData
-          const formData = new FormData();
-          formData.append('content', content);
-          formData.append('privacy', privacy);
-          
-          _selectedImages.forEach(image => {
-            formData.append('media', image);
-          });
+        const formData = new FormData();
+        formData.append('content', content);
+        formData.append('privacy', privacy);
+        
+        // Gửi thông tin về media hiện tại (sau khi xóa ảnh)
+        const currentMedia = previews
+          .filter(preview => preview.isExisting)
+          .map(preview => ({
+            type: 'image',
+            url: preview.url
+          }));
+        formData.append('media', JSON.stringify(currentMedia));
+        
+        // Gửi file mới
+        selectedImages.forEach(image => {
+          formData.append('media', image);
+        });
 
-          createResult = await postService.updatePost(postData._id, formData);
-        } else {
-          // Text only update - send JSON
-          const updateData = {
-            content,
-            privacy
-          };
-          createResult = await postService.updatePost(postData._id, updateData);
-        }
-
-        if (createResult.status !== 200) {
-          showToast.error(createResult.message || 'Có lỗi khi cập nhật bài viết');
-          return;
-        }
-
-        postId = postData._id;
+        createResult = await postService.updatePost(postData._id, formData);
       } else {
         // CREATE MODE: Create new post
         console.log('PageInfo being sent:', pageInfo);
@@ -418,7 +404,7 @@ const PostForm = ({ pageInfo, postData, isEditing = false, onSuccess }) => {
               variant="outline"
               onClick={() => handleSubmit('draft')}
               loading={loading}
-              disabled={!content.trim() || loading}
+              disabled={(!content.trim() && previews.length === 0) || loading}
               className="text-gray-700 border-gray-300"
             >
               {isEditing ? 'Cập nhật nháp' : 'Lưu nháp'}
@@ -430,7 +416,7 @@ const PostForm = ({ pageInfo, postData, isEditing = false, onSuccess }) => {
                 type="button"
                 onClick={() => handleSubmit('schedule')}
                 loading={loading}
-                disabled={!content.trim() || !scheduledTime || loading}
+                disabled={(!content.trim() && previews.length === 0) || !scheduledTime || loading}
                 className="bg-yellow-600 hover:bg-yellow-700"
               >
                 Lên lịch đăng
@@ -443,7 +429,7 @@ const PostForm = ({ pageInfo, postData, isEditing = false, onSuccess }) => {
                 type="button"
                 onClick={() => handleSubmit('publish')}
                 loading={loading}
-                disabled={!content.trim() || loading}
+                disabled={(!content.trim() && previews.length === 0) || loading}
               >
                 {isEditing ? 'Cập nhật và đăng' : 'Đăng ngay'}
               </Button>

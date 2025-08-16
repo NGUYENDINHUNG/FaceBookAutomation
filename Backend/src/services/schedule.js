@@ -2,18 +2,8 @@ import schedule from "node-schedule";
 import Post from "../models/post.js";
 import { publishPost } from "./facebook.js";
 
-/**
- * Map lưu các job đang được hẹn giờ
- * Key: postId
- * Value: job object của node-schedule
- */
 const scheduledJobs = new Map();
 
-/**
- * Tạo một job đăng bài Facebook vào thời gian định sẵn
- * @param {Object} post - Thông tin bài viết
- * @param {Object} page - Thông tin page cần đăng
- */
 export const schedulePost = async (post, page) => {
   const postId = post._id;
 
@@ -37,15 +27,20 @@ export const schedulePost = async (post, page) => {
     // Tạo job mới
     const job = schedule.scheduleJob(scheduledTime, async () => {
       try {
-        await publishPost(post, page);
+        const currentPost = await Post.findById(postId).populate("pageId");
+        if (!currentPost) {
+          console.error(`Không tìm thấy post ${postId}`);
+          return;
+        }
+        const result = await publishPost(post, page);
+        return result;
       } catch (err) {
         console.error(`Lỗi khi đăng post ${postId}:`, err);
       } finally {
-        scheduledJobs.delete(postId); // Xóa job sau khi chạy xong
+        scheduledJobs.delete(postId);
       }
     });
 
-    // Nếu job tạo thành công thì lưu lại
     if (job) {
       scheduledJobs.set(postId, job);
     } else {
@@ -72,16 +67,12 @@ export const schedulePost = async (post, page) => {
   }
 };
 
-/**
- * Khi server khởi động -> Tìm tất cả post có trạng thái 'scheduled'
- * và thời gian hẹn giờ còn ở tương lai để tạo lại job
- */
 export const initScheduledPosts = async () => {
   try {
     const scheduledPosts = await Post.find({
       status: "scheduled",
       scheduledTime: { $gt: new Date() },
-    }).populate("pageId");
+    }).populate("pageId", "pageId pageName pageAccessToken");
 
     for (const post of scheduledPosts) {
       await schedulePost(post, post.pageId);
@@ -93,11 +84,6 @@ export const initScheduledPosts = async () => {
   }
 };
 
-/**
- * Hủy job hẹn giờ của một post
- * @param {string} postId
- * @returns {boolean} - true nếu hủy thành công, false nếu không tìm thấy
- */
 export const cancelScheduledPost = (postId) => {
   if (scheduledJobs.has(postId)) {
     scheduledJobs.get(postId).cancel();

@@ -18,11 +18,12 @@ const postTextToFacebook = async (page, message) => {
 const postPhotosToFacebook = async (page, message, imageUrls) => {
   try {
     const uploadPromises = imageUrls.map(async (imgUrl) => {
+      const encodedUrl = encodeURI(imgUrl);
       const response = await axios({
         method: "POST",
         url: environment.FACEBOOK_API_URL + `/${page.pageId}/photos`,
         data: {
-          url: imgUrl,
+          url: encodedUrl,
           published: false,
           caption: message,
           access_token: page.pageAccessToken,
@@ -47,17 +48,14 @@ const postPhotosToFacebook = async (page, message, imageUrls) => {
     });
     return postRes.data;
   } catch (error) {
-    throw new Error(
-      `Lỗi khi đăng ảnh: ${
-        error.response?.data?.error?.message || error.message
-      }`
-    );
+    console.log(error);
+    throw new Error(`Lỗi khi đăng ảnh: ${error.message}`);
   }
 };
 
 const postVideoToFacebook = async (page, message, videoUrl) => {
   try {
-    const encodedUrl = encodeURI(videoUrl);
+    const encodedUrl = encodedUrl(videoUrl);
     const response = await axios({
       method: "POST",
       url: environment.FACEBOOK_API_URL + `/${page.pageId}/videos`,

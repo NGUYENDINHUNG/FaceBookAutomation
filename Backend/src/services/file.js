@@ -5,7 +5,18 @@ import { environment } from "../config/environment.js";
 
 const validateFile = (file) => {
   const imageTypes = ["image/jpeg", "image/png", "image/gif"];
-  const videoTypes = ["video/mp4", "video/quicktime"]; // mp4, mov
+  const videoTypes = [
+    "video/mp4",
+    "video/quicktime",
+    "video/avi",
+    "video/mov",
+    "video/wmv",
+    "video/flv",
+    "video/webm",
+    "video/mkv",
+    "video/x-msvideo",
+    "video/x-ms-wmv",
+  ];
 
   if (
     !imageTypes.includes(file.mimetype) &&
@@ -39,10 +50,15 @@ const validateFile = (file) => {
 };
 
 const sanitizeFileName = (fileName) => {
-  return fileName
-    .replace(/[^a-zA-Z0-9.]/g, "-") // Thay thế ký tự đặc biệt bằng dấu -
-    .replace(/--+/g, "-") // Thay nhiều dấu - liên tiếp thành một dấu
-    .toLowerCase(); // Chuyển về chữ thường
+  const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf("."));
+  const extension = fileName.substring(fileName.lastIndexOf("."));
+
+  const sanitizedName = nameWithoutExt
+    .replace(/[^a-zA-Z0-9\s]/g, "")
+    .replace(/\s+/g, "_")
+    .toLowerCase();
+
+  return sanitizedName + extension;
 };
 
 export const uploadSingleFile = async (file) => {

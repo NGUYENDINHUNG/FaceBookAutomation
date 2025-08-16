@@ -7,14 +7,14 @@ import { FindUserByToken, UpdateUserRefreshToken } from "./user.js";
 export const FacebookLogin = async (profile) => {
   try {
     const facebookId = profile.id;
-    const email = profile.emails || "";
+    const email = profile.emails?.[0]?.value || "";
 
     const name =
       profile.displayName ||
       `${profile.name?.givenName} ${profile.name?.familyName}`;
     const avatar = profile.photos?.[0]?.value || "";
 
-    const fbAccessToken = profile.accessToken;
+    const fbAccessToken = profile.accessToken;  
     let user = await User.findOne({ facebookId });
     if (!user) {
       user = await User.create({
@@ -151,27 +151,27 @@ export const LogoutService = async (refreshToken, res) => {
       res.clearCookie("refresh_token");
       return {
         success: true,
-        message: "Không có token, nhưng đã xóa cookie."
+        message: "Không có token, nhưng đã xóa cookie.",
       };
     }
-    
+
     const user = await User.findOneAndUpdate(
       { refreshToken: refreshToken },
       { refreshToken: null },
       { new: true }
     );
-    
+
     if (!user) {
       return {
         success: false,
-        message: "Không tìm thấy người dùng"
+        message: "Không tìm thấy người dùng",
       };
     }
-    
+
     res.clearCookie("refresh_token");
     return {
       success: true,
-      message: "Đăng xuất thành công"
+      message: "Đăng xuất thành công",
     };
   } catch (error) {
     throw new Error("Lỗi khi đăng xuất: " + error.message);

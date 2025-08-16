@@ -27,16 +27,14 @@ export const createPostService = async (userId, postData) => {
     }
 
     const post = await Post.create({
+      userId: userId,
       pageId: page._id,
       content: postData.content || "",
       media: uploadedFiles.map((file) => ({
-        type:
-          file.mimetype === "image/jpeg" || file.mimetype === "image/png"
-            ? "image"
-            : "video",
+        type: file.type, // Sử dụng type đã được xác định từ file service
         url: file.path,
       })),
-      status: postData.status || "draft",
+      status: "draft",
     });
 
     // Populate page info cho response
@@ -59,7 +57,10 @@ export const createPostService = async (userId, postData) => {
 export const schedulePostService = async (postId, scheduledTime) => {
   try {
     // 1. Tìm post và page
-    const post = await Post.findById(postId).populate("pageId", "_id pageName");
+    const post = await Post.findById(postId).populate(
+      "pageId",
+      "_id pageName pageAccessToken pageImage"
+    );
     if (!post) {
       return {
         status: 404,
@@ -91,8 +92,12 @@ export const schedulePostService = async (postId, scheduledTime) => {
     post.status = "scheduled";
     await post.save();
 
+    const postWithPage = await Post.findById(post._id).populate(
+      "pageId",
+      "pageId pageName pageAccessToken  "
+    );
     // 5. Tạo job lên lịch bằng service có sẵn
-    await schedulePost(post, post.pageId);
+    await schedulePost(postWithPage, postWithPage.pageId);
 
     return {
       status: 200,
@@ -133,11 +138,9 @@ export const updatePostService = async (userId, postId, postData) => {
     if (postData.files?.length > 0) {
       try {
         const uploadResult = await uploadMultipleFiles(postData.files);
+
         uploadedFiles = uploadResult.data.map((file) => ({
-          type:
-            file.mimetype === "image/jpeg" || file.mimetype === "image/png"
-              ? "image"
-              : "video",
+          type: file.type,
           url: file.path,
         }));
       } catch (uploadError) {
@@ -156,10 +159,21 @@ export const updatePostService = async (userId, postId, postData) => {
     if (postData.privacy !== undefined) updateData.privacy = postData.privacy;
     if (postData.status) updateData.status = postData.status;
 
-    if (uploadedFiles.length > 0) {
+    if (postData.media !== undefined) {
+      try {
+        const mediaArray =
+          typeof postData.media === "string"
+            ? JSON.parse(postData.media)
+            : postData.media;
+
+        updateData.media = [...mediaArray, ...uploadedFiles];
+      } catch (error) {
+        console.log(error);
+        updateData.media = uploadedFiles;
+      }
+    } else if (uploadedFiles.length > 0) {
       updateData.media = uploadedFiles;
     }
-
     const updatedPost = await Post.findOneAndUpdate(
       { _id: postId },
       updateData,
@@ -244,8 +258,8 @@ export const publishToFacebookService = async (postId) => {
     };
   }
 };
-// Lấy danh sách bài đăng
-export const getAllPostsService = async (currentPage, limit, qs) => {
+
+export const getAllPostsService = async (userId, currentPage, limit, qs) => {
   const { filter, sort } = aqp(qs);
 
   delete filter.currentPage;
@@ -254,13 +268,17 @@ export const getAllPostsService = async (currentPage, limit, qs) => {
   let offset = (+currentPage - 1) * +limit;
   let defaultLimit = +limit ? +limit : 10;
 
-  const totalItems = (await Post.find(filter)).length;
+  const queryFilter = {
+    ...filter,
+    userId: userId,
+  };
+
+  const totalItems = await Post.countDocuments(queryFilter);
   const totalPages = Math.ceil(totalItems / defaultLimit);
 
-  const posts = await Post.find(filter)
+  const posts = await Post.find(queryFilter)
     .skip(offset)
     .limit(defaultLimit)
-    // @ts-ignore: Unreachable code error
     .sort(sort)
     .populate("pageId", "pageName pageImage pageId")
     .exec();
@@ -275,6 +293,7 @@ export const getAllPostsService = async (currentPage, limit, qs) => {
     result: posts, //kết quả query
   };
 };
+
 export const getPostByIdService = async (postId) => {
   const post = await Post.findById(postId).populate(
     "pageId",

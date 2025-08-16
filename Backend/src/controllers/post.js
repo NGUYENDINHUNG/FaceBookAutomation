@@ -10,6 +10,7 @@ import {
 
 export const createPost = async (req, res) => {
   try {
+    const userId = req.user._id;
     let files = [];
     if (req.files && req.files.media) {
       if (!Array.isArray(req.files.media)) {
@@ -18,18 +19,8 @@ export const createPost = async (req, res) => {
         files = req.files.media;
       }
     }
-
     const { pageId } = req.body;
     const content = req.body.content || "";
-
-    // Validate input
-    if (!pageId) {
-      return res.status(400).json({
-        status: 400,
-        message: "Thiếu pageId",
-        data: null,
-      });
-    }
 
     if (!files.length && !content.trim()) {
       return res.status(400).json({
@@ -39,6 +30,7 @@ export const createPost = async (req, res) => {
       });
     }
     const result = await createPostService(req.user._id, {
+      userId,
       content,
       pageId,
       files,
@@ -65,6 +57,18 @@ export const updatePostController = async (req, res) => {
         ? req.files.media
         : [req.files.media];
     }
+     // Xử lý media từ frontend (có thể chứa thông tin về ảnh đã xóa)
+      // Xử lý media từ frontend (có thể chứa thông tin về ảnh đã xóa)
+    if (req.body.media) {
+      try {
+        postData.media = JSON.parse(req.body.media);
+      } catch (error) {
+        console.log(error);
+        // Nếu không parse được JSON, giữ nguyên
+        postData.media = req.body.media;
+      }
+    }
+
     const result = await updatePostService(userId, postId, postData);
 
     return res.status(result.status).json({
@@ -142,9 +146,11 @@ export const publishToFacebook = async (req, res) => {
 };
 export const getAllPosts = async (req, res) => {
   try {
+    const userId = req.user._id;
     const currentPage = req.query.currentPage;
     const limit = req.query.limit;
     const result = await getAllPostsService(
+      userId,
       Number(currentPage),
       Number(limit),
       req.query
