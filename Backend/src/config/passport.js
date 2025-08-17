@@ -2,12 +2,21 @@ import passport from "passport";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import { environment } from "./environment.js";
 
+const getCallbackURL = (provider) => {
+  const baseURL =
+    environment.NODE_ENV === "production"
+      ? process.env.SERVER_URL
+      : "http://localhost:8000";
+
+  return `${baseURL}/v1/api/auth/${provider}/callback`;
+};
+
 passport.use(
   new FacebookStrategy(
     {
       clientID: environment.FACEBOOK_APP_ID,
       clientSecret: environment.FACEBOOK_APP_SECRET,
-      callbackURL: environment.FACEBOOK_CALLBACK_URL,
+      callbackURL: getCallbackURL("facebook"),
       profileFields: ["displayName", "photos", "name"],
     },
     async (accessToken, refreshToken, profile, cb) => {

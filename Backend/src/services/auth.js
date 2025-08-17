@@ -14,7 +14,7 @@ export const FacebookLogin = async (profile) => {
       `${profile.name?.givenName} ${profile.name?.familyName}`;
     const avatar = profile.photos?.[0]?.value || "";
 
-    const fbAccessToken = profile.accessToken;  
+    const fbAccessToken = profile.accessToken;
     let user = await User.findOne({ facebookId });
     if (!user) {
       user = await User.create({
