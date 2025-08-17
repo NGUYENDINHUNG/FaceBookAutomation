@@ -3,7 +3,7 @@ import { Suspense, lazy } from 'react';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/layout/Layout';
 import { ROUTES } from './config/constan';
-import { AuthProvider } from './features/auth/context/AuthContext';
+import { AuthProvider, useAuth } from './features/auth';
 
 // Loading component
 const Loading = () => (
@@ -18,23 +18,44 @@ const Pages = lazy(() => import('./pages/Pages'));
 const Posts = lazy(() => import('./pages/Posts'));
 const CreatePost = lazy(() => import('./pages/CreatePost'));
 const EditPost = lazy(() => import('./pages/EditPost'));
+const Debug = lazy(() => import('./pages/Debug'));
+
+const AppContent = () => {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Layout>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route path={ROUTES.HOME} element={<Home />} />
+          <Route path={ROUTES.PAGES} element={<Pages />} />
+          <Route path={ROUTES.POSTS} element={<Posts />} />
+          <Route path={ROUTES.CREATE_POST} element={<CreatePost />} />
+          <Route path={`${ROUTES.EDIT_POST}/:postId`} element={<EditPost />} />
+          <Route path="/debug" element={<Debug />} />
+          <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
+        </Routes>
+      </Suspense>
+    </Layout>
+  );
+};
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Layout>
-          <Suspense fallback={<Loading />}>
-            <Routes>
-              <Route path={ROUTES.HOME} element={<Home />} />
-              <Route path={ROUTES.PAGES} element={<Pages />} />
-              <Route path={ROUTES.POSTS} element={<Posts />} />
-              <Route path={ROUTES.CREATE_POST} element={<CreatePost />} />
-              <Route path={`${ROUTES.EDIT_POST}/:postId`} element={<EditPost />} />
-              <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
-            </Routes>
-          </Suspense>
-        </Layout>
+        <AppContent />
         <Toaster
           position="top-right"
           toastOptions={{

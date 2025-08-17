@@ -6,7 +6,6 @@ const scheduledJobs = new Map();
 
 export const schedulePost = async (post, page) => {
   const postId = post._id;
-
   try {
     // Nếu post này đã có job cũ -> hủy để tạo job mới
     if (scheduledJobs.has(postId)) {
@@ -66,7 +65,6 @@ export const schedulePost = async (post, page) => {
     };
   }
 };
-
 export const initScheduledPosts = async () => {
   try {
     const scheduledPosts = await Post.find({
@@ -83,7 +81,6 @@ export const initScheduledPosts = async () => {
     console.error("Lỗi khi khởi tạo các post hẹn giờ:", err.message);
   }
 };
-
 export const cancelScheduledPost = (postId) => {
   if (scheduledJobs.has(postId)) {
     scheduledJobs.get(postId).cancel();

@@ -1,28 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../common/Button';
-import { authService } from '../../features/auth/services/authService';
+import { useAuth } from '../../features/auth';
 import { ROUTES } from '../../config/constan';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const { user, loading, logout, login, isAuthenticated } = useAuth();
   
-  // Debug user state
-  useEffect(() => {
-    console.log('Current user state:', user);
-  }, [user]);
   const dropdownRef = useRef(null);
-  const isAuthenticated = localStorage.getItem('token');
-  
-  // Debug authentication
-  useEffect(() => {
-    console.log('Token exists:', !!localStorage.getItem('token'));
-    console.log('Token value:', localStorage.getItem('token'));
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -35,36 +22,13 @@ const Header = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (isAuthenticated) {
-        setLoading(true);
-        setError(null);
-        try {
-          const response = await authService.getMe();
-          console.log('User response:', response);
-          console.log('User object:', response.user);
-          setUser(response.user);
-        } catch (error) {
-          console.error('Error fetching user:', error);
-          setError('Không thể tải thông tin người dùng');
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-    fetchUser();
-  }, [isAuthenticated]);
-
   const handleLogin = () => {
-    authService.loginWithFacebook();
+    login();
   };
 
   const handleLogout = async () => {
     try {
-      await authService.logout();
-      setUser(null);
-      window.location.reload();
+      await logout();
     } catch (error) {
       console.error('Error logging out:', error);
     }
@@ -114,21 +78,7 @@ const Header = () => {
                     <div className="w-9 h-9 rounded-full bg-gray-100 animate-pulse"></div>
                     <div className="h-4 w-24 bg-gray-100 rounded animate-pulse"></div>
                   </div>
-                ) : error ? (
-                  <div className="flex items-center space-x-3 border-l pl-4">
-                    <div className="text-red-500 flex items-center space-x-2">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-sm">{error}</span>
-                    </div>
-                    <Button 
-                      onClick={() => window.location.reload()}
-                      className="text-blue-600 hover:text-blue-700"
-                    >
-                      Thử lại
-                    </Button>
-                  </div>
+
                 ) : user && (
                   <div className="flex items-center space-x-3 border-l pl-4 relative" ref={dropdownRef}>
                     <div 

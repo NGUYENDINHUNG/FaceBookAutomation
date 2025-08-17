@@ -1,7 +1,7 @@
 // src/features/posts/components/CreatePost.jsx
 import { useState } from 'react';
 import { Button, Input } from '../../../components/common';
-import { useAuth } from '../../../features/auth/hooks/useAuth';
+import { useAuth } from '../../../features/auth';
 import { toast } from 'react-toastify';
 import { postService } from '../services/postService';
 

@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { postService } from '../services/postService';
 import { ROUTES } from '../../../config/constan';
-import { useConfirm } from '../../../hooks/useConfirm';
 import { toastPromise } from '../../../utils/toastHelpers';
-
+import PostCard from './PostCard';
 // Component Countdown Timer
 const CountdownTimer = ({ scheduledTime }) => {
   const [timeLeft, setTimeLeft] = useState(null);
@@ -37,7 +35,7 @@ const CountdownTimer = ({ scheduledTime }) => {
 
   const isUrgent = timeLeft.hours === 0 && timeLeft.minutes < 5;
   const isVeryUrgent = timeLeft.hours === 0 && timeLeft.minutes < 1;
-  
+
   let timeString = '';
   if (timeLeft.hours > 0) {
     timeString = `${timeLeft.hours}:${timeLeft.minutes.toString().padStart(2, '0')}:${timeLeft.seconds.toString().padStart(2, '0')}`;
@@ -46,10 +44,9 @@ const CountdownTimer = ({ scheduledTime }) => {
   }
 
   return (
-    <div className={`flex items-center space-x-1 text-xs font-medium ${
-      isVeryUrgent ? 'text-red-600 animate-pulse' : 
-      isUrgent ? 'text-red-600' : 'text-yellow-600'
-    }`}>
+    <div className={`flex items-center space-x-1 text-xs font-medium ${isVeryUrgent ? 'text-red-600 animate-pulse' :
+        isUrgent ? 'text-red-600' : 'text-yellow-600'
+      }`}>
       <svg className={`w-3 h-3 ${isVeryUrgent ? 'animate-pulse' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
@@ -61,8 +58,6 @@ const CountdownTimer = ({ scheduledTime }) => {
 };
 
 const PostList = ({ onStatsChange }) => {
-  const navigate = useNavigate();
-  const { confirm, ConfirmModal } = useConfirm();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
@@ -86,12 +81,12 @@ const PostList = ({ onStatsChange }) => {
       }
 
       const response = await postService.getPosts(params);
-      
+
       // Kiểm tra và xử lý dữ liệu trả về
       if (response?.data?.result) {
         setPosts(response.data.result);
         setTotalPages(response.data.meta?.pages || 1);
-        
+
         // Cập nhật stats
         const newStats = {
           draft: response.data.result.filter(post => post.status === 'draft').length,
@@ -103,7 +98,7 @@ const PostList = ({ onStatsChange }) => {
       } else if (response?.result) {
         setPosts(response.result);
         setTotalPages(response.meta?.pages || 1);
-        
+
         // Cập nhật stats  
         const newStats = {
           draft: response.result.filter(post => post.status === 'draft').length,
@@ -134,100 +129,12 @@ const PostList = ({ onStatsChange }) => {
     setCurrentPage(1);
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      case 'scheduled': return 'bg-blue-100 text-blue-800';
-      case 'published': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'draft': return 'Bản nháp';
-      case 'scheduled': return 'Đã lên lịch';
-      case 'published': return 'Đã đăng';
-      default: return status;
-    }
-  };
-
-  // Handler functions
-  const handlePublishNow = async (postId) => {
-    const confirmed = await confirm({
-      title: 'Đăng bài ngay',
-      message: 'Bạn có chắc muốn đăng bài này ngay bây giờ?',
-      confirmText: 'Đăng ngay',
-      cancelText: 'Hủy',
-      type: 'info'
-    });
-    
-    if (!confirmed) return;
-
-    setActionLoading(prev => ({ ...prev, [postId]: 'publishing' }));
-    
-    try {
-      await toastPromise(
-        postService.publishPost(postId),
-        {
-          loading: 'Đang đăng bài...',
-          success: 'Đăng bài thành công!',
-          error: 'Có lỗi xảy ra khi đăng bài',
-          successIcon: '🚀',
-          loadingIcon: '📤'
-        }
-      );
-      fetchPosts(); // Refresh list
-    } catch (error) {
-      console.error('Publish error:', error);
-      // Error được handle bởi toastPromise
-    } finally {
-      setActionLoading(prev => ({ ...prev, [postId]: null }));
-    }
-  };
-
-  const handleDeletePost = async (postId) => {
-    const confirmed = await confirm({
-      title: 'Xóa bài viết',
-      message: 'Bạn có chắc muốn xóa bài viết này? Hành động này không thể hoàn tác.',
-      confirmText: 'Xóa',
-      cancelText: 'Hủy',
-      type: 'danger'
-    });
-    
-    if (!confirmed) return;
-
-    setActionLoading(prev => ({ ...prev, [postId]: 'deleting' }));
-    
-    try {
-      await toastPromise(
-        postService.deletePost(postId),
-        {
-          loading: 'Đang xóa bài viết...',
-          success: 'Xóa bài viết thành công!',
-          error: 'Có lỗi xảy ra khi xóa bài viết',
-          successIcon: '🗑️',
-          loadingIcon: '⏳'
-        }
-      );
-      fetchPosts(); // Refresh list
-    } catch (error) {
-      console.error('Delete error:', error);
-    } finally {
-      setActionLoading(prev => ({ ...prev, [postId]: null }));
-    }
-  };
-
-  const handleSchedulePost = (postId) => {
-    setSelectedPostId(postId);
-    setShowScheduleModal(true);
-  };
-
+ 
   const handleScheduleSubmit = async (scheduledTime) => {
     if (!selectedPostId) return;
 
     setActionLoading(prev => ({ ...prev, [selectedPostId]: 'scheduling' }));
-    
+
     try {
       await toastPromise(
         postService.schedulePost(selectedPostId, scheduledTime),
@@ -249,56 +156,16 @@ const PostList = ({ onStatsChange }) => {
     }
   };
 
-  const handleCancelSchedule = async (postId) => {
-    const confirmed = await confirm({
-      title: 'Hủy lịch đăng bài',
-      message: 'Bạn có chắc muốn hủy lịch đăng bài này?',
-      confirmText: 'Hủy lịch',
-      cancelText: 'Không',
-      type: 'warning'
-    });
-    
-    if (!confirmed) return;
-
-    setActionLoading(prev => ({ ...prev, [postId]: 'canceling' }));
-    
-    try {
-      await toastPromise(
-        postService.updatePost(postId, { 
-          status: 'draft',
-          scheduledTime: null 
-        }),
-        {
-          loading: 'Đang hủy lịch đăng bài...',
-          success: 'Hủy lịch thành công!',
-          error: 'Có lỗi xảy ra khi hủy lịch',
-          successIcon: '❌',
-          loadingIcon: '⏳'
-        }
-      );
-      fetchPosts(); // Refresh list
-    } catch (error) {
-      console.error('Cancel schedule error:', error);
-    } finally {
-      setActionLoading(prev => ({ ...prev, [postId]: null }));
-    }
-  };
-
-  const handleEditPost = (postId) => {
-    navigate(`${ROUTES.EDIT_POST}/${postId}`);
-  };
-
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-1 mb-4">
         <div className="flex space-x-1">
           <button
-            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'all' 
-                ? 'bg-blue-600 text-white' 
+            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'all'
+                ? 'bg-blue-600 text-white'
                 : 'text-gray-600 hover:bg-gray-50'
-            }`}
+              }`}
             onClick={() => handleTabChange('all')}
           >
             <div className="flex items-center justify-center space-x-1">
@@ -309,11 +176,10 @@ const PostList = ({ onStatsChange }) => {
             </div>
           </button>
           <button
-            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'draft'
+            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'draft'
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-600 hover:bg-gray-50'
-            }`}
+              }`}
             onClick={() => handleTabChange('draft')}
           >
             <div className="flex items-center justify-center space-x-1">
@@ -324,11 +190,10 @@ const PostList = ({ onStatsChange }) => {
             </div>
           </button>
           <button
-            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'scheduled'
+            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'scheduled'
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-600 hover:bg-gray-50'
-            }`}
+              }`}
             onClick={() => handleTabChange('scheduled')}
           >
             <div className="flex items-center justify-center space-x-1">
@@ -339,11 +204,10 @@ const PostList = ({ onStatsChange }) => {
             </div>
           </button>
           <button
-            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'published'
+            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'published'
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-600 hover:bg-gray-50'
-            }`}
+              }`}
             onClick={() => handleTabChange('published')}
           >
             <div className="flex items-center justify-center space-x-1">
@@ -382,199 +246,15 @@ const PostList = ({ onStatsChange }) => {
       {!loading && posts.length > 0 && (
         <div className="space-y-4">
           {posts.map((post) => (
-            <div key={post._id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-              <div className="p-4">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center space-x-3 flex-1">
-                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                      {post.pageId?.pageImage ? (
-                        <img 
-                          src={post.pageId.pageImage} 
-                          alt={post.pageId.pageName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-blue-500 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-medium text-gray-900 truncate">
-                        {post.pageId?.pageName || 'Untitled Page'}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {new Date(post.createdAt).toLocaleDateString('vi-VN')}
-                      </p>
-                      {/* Countdown Timer cho bài viết đã lên lịch */}
-                      {post.status === 'scheduled' && post.scheduledTime && (
-                        <div className="mt-1">
-                          <CountdownTimer scheduledTime={post.scheduledTime} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2 ml-3">
-                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${getStatusColor(post.status)}`}>
-                      {getStatusText(post.status)}
-                    </span>
-                    <div className="flex items-center space-x-1">
-                      {/* Edit button - disabled for published posts */}
-                      {post.status !== 'published' ? (
-                        <button 
-                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" 
-                          title="Chỉnh sửa"
-                          onClick={() => handleEditPost(post._id)}
-                          disabled={actionLoading[post._id]}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                      ) : (
-                        <div 
-                          className="p-1.5 text-gray-300 cursor-not-allowed" 
-                          title="Không thể chỉnh sửa bài viết đã đăng"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </div>
-                      )}
-                      
-                      {/* Delete button - disabled for published posts */}
-                      {post.status !== 'published' ? (
-                        <button 
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50" 
-                          title="Xóa"
-                          onClick={() => handleDeletePost(post._id)}
-                          disabled={actionLoading[post._id]}
-                        >
-                          {actionLoading[post._id] === 'deleting' ? (
-                            <div className="w-4 h-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
-                          ) : (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          )}
-                        </button>
-                      ) : (
-                        <div 
-                          className="p-1.5 text-gray-300 cursor-not-allowed" 
-                          title="Không thể xóa bài viết đã đăng"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="mb-3">
-                  <p className="text-gray-800 text-sm leading-relaxed line-clamp-3">
-                    {post.content}
-                  </p>
-                </div>
-
-                {/* Media preview - compact */}
-                {post.media && post.media.length > 0 && (
-                  <div className="mb-3">
-                    <div className="flex space-x-2 overflow-x-auto">
-                      {post.media.slice(0, 3).map((media, index) => (
-                        <div key={index} className="flex-shrink-0">
-                          <img
-                            src={media.url}
-                            alt={`Media ${index + 1}`}
-                            className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                          />
-                        </div>
-                      ))}
-                      {post.media.length > 3 && (
-                        <div className="w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
-                          <span className="text-xs text-gray-500">+{post.media.length - 3}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Footer - compact */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <div className="flex items-center space-x-3 text-xs text-gray-500">
-                    {post.scheduledTime && (
-                      <CountdownTimer scheduledTime={post.scheduledTime} />
-                    )}
-                    <span>ID: {post._id.slice(-6)}</span>
-                  </div>
-                  
-                  {post.status === 'draft' && (
-                    <div className="flex items-center space-x-2">
-                      <button 
-                        className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center space-x-1"
-                        onClick={() => handlePublishNow(post._id)}
-                        disabled={actionLoading[post._id]}
-                      >
-                        {actionLoading[post._id] === 'publishing' ? (
-                          <>
-                            <div className="w-3 h-3 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                            <span>Đang đăng...</span>
-                          </>
-                        ) : (
-                          <span>Đăng ngay</span>
-                        )}
-                      </button>
-                      <button 
-                        className="px-3 py-1.5 text-xs border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
-                        onClick={() => handleSchedulePost(post._id)}
-                        disabled={actionLoading[post._id]}
-                      >
-                        Lên lịch
-                      </button>
-                    </div>
-                  )}
-                  
-                  {post.status === 'scheduled' && (
-                    <div className="flex items-center space-x-2">
-                      <button 
-                        className="px-3 py-1.5 text-xs bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center space-x-1"
-                        onClick={() => handlePublishNow(post._id)}
-                        disabled={actionLoading[post._id]}
-                      >
-                        {actionLoading[post._id] === 'publishing' ? (
-                          <>
-                            <div className="w-3 h-3 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                            <span>Đang đăng...</span>
-                          </>
-                        ) : (
-                          <span>Đăng ngay</span>
-                        )}
-                      </button>
-                      <button 
-                        className="px-3 py-1.5 text-xs border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center space-x-1"
-                        onClick={() => handleCancelSchedule(post._id)}
-                        disabled={actionLoading[post._id]}
-                      >
-                        {actionLoading[post._id] === 'canceling' ? (
-                          <>
-                            <div className="w-3 h-3 animate-spin rounded-full border-2 border-gray-600 border-t-transparent"></div>
-                            <span>Đang hủy...</span>
-                          </>
-                        ) : (
-                          <span>Hủy lịch</span>
-                        )}
-                      </button>
-                    </div>
-                  )}
-                  
-                </div>
-              </div>
-            </div>
+            <PostCard
+              key={post._id}
+              post={post}
+              onUpdate={fetchPosts}
+              onDelete={(postId) => {
+                setPosts(posts.filter(p => p._id !== postId));
+                fetchPosts(); // Refresh để cập nhật stats
+              }}
+            />
           ))}
         </div>
       )}
@@ -585,11 +265,10 @@ const PostList = ({ onStatsChange }) => {
           {[...Array(totalPages)].map((_, index) => (
             <button
               key={index}
-              className={`px-3 py-1 rounded ${
-                currentPage === index + 1 
-                  ? 'bg-blue-600 text-white' 
+              className={`px-3 py-1 rounded ${currentPage === index + 1
+                  ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+                }`}
               onClick={() => setCurrentPage(index + 1)}
             >
               {index + 1}
@@ -661,8 +340,7 @@ const PostList = ({ onStatsChange }) => {
         </div>
       )}
 
-      {/* Confirm Modal */}
-      <ConfirmModal />
+
     </div>
   );
 };

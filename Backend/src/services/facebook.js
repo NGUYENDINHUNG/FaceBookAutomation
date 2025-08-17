@@ -14,7 +14,6 @@ const postTextToFacebook = async (page, message) => {
     throw new Error(`Lỗi khi đăng text: ${error.message}`);
   }
 };
-
 const postPhotosToFacebook = async (page, message, imageUrls) => {
   try {
     const uploadPromises = imageUrls.map(async (imgUrl) => {
@@ -52,10 +51,9 @@ const postPhotosToFacebook = async (page, message, imageUrls) => {
     throw new Error(`Lỗi khi đăng ảnh: ${error.message}`);
   }
 };
-
 const postVideoToFacebook = async (page, message, videoUrl) => {
   try {
-    const encodedUrl = encodedUrl(videoUrl);
+    const encodedUrl = encodeURI(videoUrl);
     const response = await axios({
       method: "POST",
       url: environment.FACEBOOK_API_URL + `/${page.pageId}/videos`,
@@ -70,7 +68,6 @@ const postVideoToFacebook = async (page, message, videoUrl) => {
     throw new Error(`Lỗi khi đăng video: ${error.message}`);
   }
 };
-
 export const publishPost = async (post, page) => {
   try {
     let fbResponse;
@@ -115,5 +112,16 @@ export const publishPost = async (post, page) => {
       data: null,
       error: error.message,
     };
+  }
+};
+export const deletePostFromFacebook = async (page, post) => {
+  try {
+    const response = await axios.delete(
+      environment.FACEBOOK_API_URL + `/${post.facebookPostId}`,
+      { params: { access_token: page.pageAccessToken } }
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(`Lỗi khi xóa bài post: ${error.message}`);
   }
 };

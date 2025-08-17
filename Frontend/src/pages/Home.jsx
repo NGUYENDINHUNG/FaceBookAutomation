@@ -1,17 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/common/Button';
-import { authService } from '../features/auth/services/authService';
-import { useAuthCallback } from '../features/auth/hooks/useAuthCallback';
+import { useAuth, useAuthCallback } from '../features/auth';
 
 const Home = () => {
   const navigate = useNavigate();
-  const isAuthenticated = localStorage.getItem('token');
+  const { isAuthenticated, login } = useAuth();
 
-  // Handle Facebook login callback
   useAuthCallback();
 
   const handleLogin = () => {
-    authService.loginWithFacebook();
+    login();
   };
 
   return (

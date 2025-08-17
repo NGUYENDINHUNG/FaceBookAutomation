@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import PostForm from '../features/posts/components/PostForm';
 import Button from '../components/common/Button';
-
+import { ROUTES } from '../config/constan';
 const CreatePost = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -18,14 +18,14 @@ const CreatePost = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
-            
+
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               Không tìm thấy thông tin page
             </h3>
             <p className="text-gray-600 mb-8 leading-relaxed">
               Vui lòng chọn một Facebook page từ danh sách để tạo bài viết mới.
             </p>
-            
+
             <Button
               onClick={() => navigate('/pages')}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-3 px-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
@@ -44,7 +44,7 @@ const CreatePost = () => {
   const handlePostSuccess = (postData) => {
     console.log('Post created successfully:', postData);
     setTimeout(() => {
-      navigate('/pages');
+      navigate(ROUTES.POSTS); // Sử dụng constant thay vì hardcode
     }, 2000);
   };
 
@@ -61,7 +61,7 @@ const CreatePost = () => {
               Tạo nội dung cho Facebook page: <span className="font-medium">{pageInfo.pageName}</span>
             </p>
           </div>
-          
+
           <Button
             onClick={() => navigate('/pages')}
             variant="outline"

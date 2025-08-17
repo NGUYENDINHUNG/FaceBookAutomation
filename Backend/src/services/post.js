@@ -1,9 +1,9 @@
 import Post from "../models/post.js";
 import Page from "../models/page.js";
-import { uploadMultipleFiles } from "./file.js";
-import { publishPost } from "./facebook.js";
-import { schedulePost } from "./schedule.js";
 import aqp from "api-query-params";
+import { uploadMultipleFiles } from "./file.js";
+import { deletePostFromFacebook, publishPost } from "./facebook.js";
+import { schedulePost } from "./schedule.js";
 
 export const createPostService = async (userId, postData) => {
   try {
@@ -112,6 +112,7 @@ export const schedulePostService = async (postId, scheduledTime) => {
       },
     };
   } catch (error) {
+    console.log(error);
     return {
       status: 500,
       message: "Lỗi server khi lên lịch đăng bài",
@@ -196,13 +197,16 @@ export const updatePostService = async (userId, postId, postData) => {
 };
 export const deletePostService = async (postId) => {
   try {
-    const post = await Post.findById(postId);
-    if (post.status === "published") {
+    const post = await Post.findById(postId).populate("pageId");
+    if (!post) {
       return {
-        status: 400,
-        message: "Bài post đã được đăng trước đó",
+        status: 404,
+        message: "Bài post không tồn tại",
         data: null,
       };
+    }
+    if (post.status === "published" && post.facebookPostId) {
+      await deletePostFromFacebook(post.pageId, post);
     }
     await post.deleteOne();
     return {
@@ -258,7 +262,6 @@ export const publishToFacebookService = async (postId) => {
     };
   }
 };
-
 export const getAllPostsService = async (userId, currentPage, limit, qs) => {
   const { filter, sort } = aqp(qs);
 
@@ -293,7 +296,6 @@ export const getAllPostsService = async (userId, currentPage, limit, qs) => {
     result: posts, //kết quả query
   };
 };
-
 export const getPostByIdService = async (postId) => {
   const post = await Post.findById(postId).populate(
     "pageId",

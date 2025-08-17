@@ -117,6 +117,8 @@ const PostForm = ({ pageInfo, postData, isEditing = false, onSuccess }) => {
 
       if (isEditing) {
         // EDITING MODE: Update existing post
+        postId = postData._id; // Gán postId từ postData hiện tại
+        
         const formData = new FormData();
         formData.append('content', content);
         formData.append('privacy', privacy);
@@ -135,7 +137,7 @@ const PostForm = ({ pageInfo, postData, isEditing = false, onSuccess }) => {
           formData.append('media', image);
         });
 
-        createResult = await postService.updatePost(postData._id, formData);
+        createResult = await postService.updatePost(postId, formData);
       } else {
         // CREATE MODE: Create new post
         console.log('PageInfo being sent:', pageInfo);

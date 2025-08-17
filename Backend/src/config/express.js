@@ -8,36 +8,35 @@ const configExpress = (app) => {
   app.use(cookieParser());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  app.use(cors());
-  // let corsOrigin;
+  let corsOrigin;
 
-  // switch (process.env.NODE_ENV) {
-  //   case "production":
-  //     corsOrigin = [process.env.CORS_ORIGIN, "http://localhost:5173"];
-  //     break;
-  //   case "development":
-  //   default:
-  //     corsOrigin = [
-  //       "http://localhost:3000",
-  //       "http://localhost:4000",
-  //       "http://localhost:5173",
-  //     ];
-  // }
+  switch (process.env.NODE_ENV) {
+    case "production":
+      corsOrigin = [process.env.CORS_ORIGIN, "http://localhost:5173"];
+      break;
+    case "development":
+    default:
+      corsOrigin = [
+        "http://localhost:3000",
+        "http://localhost:4000",
+        "http://localhost:5173",
+      ];
+  }
 
-  // const corsOptions = {
-  //   origin: corsOrigin,
-  //   credentials: true,
-  //   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  //   allowedHeaders: [
-  //     "Content-Type",
-  //     "Authorization",
-  //     "X-Requested-With",
-  //     "Accept",
-  //   ],
-  //   optionsSuccessStatus: 200,
-  // };
+  const corsOptions = {
+    origin: corsOrigin,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+    ],
+    optionsSuccessStatus: 200,
+  };
 
-  // app.use(cors(corsOptions));
+  app.use(cors(corsOptions));
 
   return app;
 };

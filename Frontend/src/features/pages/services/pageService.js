@@ -13,6 +13,11 @@ export const pageService = {
       return [];
     } catch (error) {
       console.error("Get user pages error:", error);
+      // Nếu là timeout hoặc network error, trả về empty array thay vì throw
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        console.warn('API timeout, returning empty array');
+        return [];
+      }
       throw error;
     }
   },
@@ -28,6 +33,11 @@ export const pageService = {
       return [];
     } catch (error) {
       console.error("Get local user pages error:", error);
+      // Nếu là timeout hoặc network error, trả về empty array thay vì throw
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        console.warn('API timeout, returning empty array');
+        return [];
+      }
       throw error;
     }
   },

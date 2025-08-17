@@ -5,7 +5,6 @@ const Button = ({
     variant = 'primary',
     size = 'medium',
     className = '',
-    disabled = false,
     loading = false,
     ...props
 }) => {
@@ -24,20 +23,14 @@ const Button = ({
         large: 'px-6 py-3 text-lg'
     };
 
-    const disabledStyles = disabled ? 'opacity-50 cursor-not-allowed' : '';
-    const loadingStyles = loading ? 'cursor-wait' : '';
-
     return (
         <button
             className={`
                 ${baseStyles}
                 ${variants[variant]}
                 ${sizes[size]}
-                ${disabledStyles}
-                ${loadingStyles}
                 ${className}
             `}
-            disabled={disabled || loading}
             {...props}
         >
             {loading && (
@@ -56,7 +49,6 @@ Button.propTypes = {
     variant: PropTypes.oneOf(['primary', 'secondary', 'outline', 'danger']),
     size: PropTypes.oneOf(['small', 'medium', 'large']),
     className: PropTypes.string,
-    disabled: PropTypes.bool,
     loading: PropTypes.bool
 };
 

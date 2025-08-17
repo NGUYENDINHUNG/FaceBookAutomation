@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Modal from '../../../components/common/Modal';
 import Button from '../../../components/common/Button';
 import { postService } from '../services/postService';
+import { showToast } from '../../../utils/toastHelpers'; // Thêm import
 
 const SchedulePostModal = ({ isOpen, onClose, post, onSuccess }) => {
   const [scheduledTime, setScheduledTime] = useState('');
@@ -16,7 +17,7 @@ const SchedulePostModal = ({ isOpen, onClose, post, onSuccess }) => {
 
   const handleSchedule = async () => {
     if (!scheduledTime) {
-      alert('Vui lòng chọn thời gian lên lịch');
+      showToast.error('Vui lòng chọn thời gian lên lịch'); // Thay alert
       return;
     }
 
@@ -24,7 +25,7 @@ const SchedulePostModal = ({ isOpen, onClose, post, onSuccess }) => {
     const now = new Date();
     
     if (selectedDate <= now) {
-      alert('Thời gian lên lịch phải ở tương lai');
+      showToast.error('Thời gian lên lịch phải ở tương lai'); // Thay alert
       return;
     }
 
@@ -37,16 +38,16 @@ const SchedulePostModal = ({ isOpen, onClose, post, onSuccess }) => {
       );
 
       if (response.status === 200) {
-        alert('Lên lịch đăng bài thành công!');
+        showToast.schedule('Lên lịch đăng bài thành công!'); // Thay alert
         onSuccess && onSuccess(response.data);
         onClose();
         setScheduledTime('');
       } else {
-        alert(response.message || 'Có lỗi xảy ra khi lên lịch');
+        showToast.error(response.message || 'Có lỗi xảy ra khi lên lịch'); // Thay alert
       }
     } catch (error) {
       console.error('Schedule error:', error);
-      alert(error.response?.data?.message || 'Có lỗi xảy ra khi lên lịch đăng bài');
+      showToast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lên lịch đăng bài'); // Thay alert
     } finally {
       setLoading(false);
     }

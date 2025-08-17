@@ -11,7 +11,6 @@ import { verifyToken } from "../middlewares/Auth.js";
 
 const AuthRouter = express.Router();
 
-// Route bắt đầu đăng nhập Facebook
 AuthRouter.get(
   "/facebook",
   passport.authenticate("facebook", {
@@ -24,7 +23,6 @@ AuthRouter.get(
     ],
   })
 );
-
 AuthRouter.get(
   "/facebook/callback",
   passport.authenticate("facebook", {
@@ -33,7 +31,7 @@ AuthRouter.get(
   }),
   loginFaceBook
 );
-AuthRouter.post("/refresh-token", RefreshTokenUser);
+AuthRouter.get("/refresh-token", RefreshTokenUser);
 AuthRouter.get("/me", verifyToken, getAccount);
 AuthRouter.post("/logout", logout);
 

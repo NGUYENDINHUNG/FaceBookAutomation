@@ -3,6 +3,7 @@ export const API_ENDPOINTS = {
   AUTH: {
     FACEBOOK_LOGIN: "/api/auth/facebook",
     FACEBOOK_CALLBACK: "/api/auth/facebook/callback",
+    REFRESH_TOKEN: "/api/auth/refresh-token",
     LOGOUT: "/api/auth/logout",
     GET_ME: "/api/auth/me",
   },
@@ -41,7 +42,7 @@ export const STORAGE_KEYS = {
 // API Config - Sử dụng environment variables
 export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000",
-  TIMEOUT: parseInt(import.meta.env.VITE_API_TIMEOUT) || 10000,
+  TIMEOUT: parseInt(import.meta.env.VITE_API_TIMEOUT) || 30000,
   HEADERS: {
     "Content-Type": "application/json",
     Accept: "application/json",
