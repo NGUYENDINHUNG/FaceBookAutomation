@@ -12,7 +12,7 @@ const configExpress = (app) => {
 
   switch (process.env.NODE_ENV) {
     case "production":
-      corsOrigin = [process.env.CORS_ORIGIN?.replace(/\/$/, '')]; // Loại bỏ dấu / ở cuối
+      corsOrigin = [process.env.CORS_ORIGIN?.replace(/\/$/, '')]; 
       break;
     case "development":
     default:

@@ -17,8 +17,7 @@ export const loginFaceBook = async (req, res) => {
       });
       const redirectUrl = `${process.env.CORS_ORIGIN}?accessToken=${data.accessToken}`;
       return res.redirect(redirectUrl);
-    }
-    {
+    } else {
       return res.redirect(
         `${process.env.CORS_ORIGIN}/login?error=${encodeURIComponent(data.EM)}`
       );
@@ -74,7 +73,7 @@ export const logout = async (req, res) => {
   try {
     const refreshToken = req.cookies["refresh_token"];
     const result = await LogoutService(refreshToken, res);
-    
+
     if (result.success) {
       return res.status(200).json({
         statusCode: 200,
