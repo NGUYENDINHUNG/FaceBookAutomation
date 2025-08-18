@@ -11,10 +11,13 @@ export const loginFaceBook = async (req, res) => {
     const data = await FacebookLogin(req.user);
 
     if (data.EC === 0) {
+      // set refresh_token cookie
       res.cookie("refresh_token", data.refreshToken, {
         httpOnly: true,
         maxAge: ms(process.env.JWT_REFRESH_EXPIRE),
       });
+
+      // redirect về frontend kèm accessToken
       const redirectUrl = `${process.env.CORS_ORIGIN}?accessToken=${data.accessToken}`;
       return res.redirect(redirectUrl);
     } else {
@@ -31,6 +34,7 @@ export const loginFaceBook = async (req, res) => {
     );
   }
 };
+
 export const RefreshTokenUser = async (req, res) => {
   const refreshToken = req.cookies["refresh_token"];
   const result = await RefreshToken(refreshToken, res);

@@ -9,6 +9,7 @@ passport.use(
       clientSecret: environment.FACEBOOK_APP_SECRET,
       callbackURL:
         "https://automation-1-m004.onrender.com/api/auth/facebook/callback",
+        
       profileFields: ["displayName", "photos", "name"],
     },
     async (accessToken, refreshToken, profile, cb) => {
