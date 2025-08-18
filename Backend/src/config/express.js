@@ -12,13 +12,11 @@ const configExpress = (app) => {
 
   switch (process.env.NODE_ENV) {
     case "production":
-      corsOrigin = [process.env.CORS_ORIGIN];
+      corsOrigin = "https://face-book-automation.vercel.app/";
       break;
     case "development":
     default:
-      corsOrigin = [
-        "http://localhost:5173",
-      ];
+      corsOrigin = ["http://localhost:5173"];
   }
 
   const corsOptions = {

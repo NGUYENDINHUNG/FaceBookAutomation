@@ -12,7 +12,10 @@ export const environment = {
   // Facebook App
   FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID,
   FACEBOOK_APP_SECRET: process.env.FACEBOOK_APP_SECRET,
-  FACEBOOK_CALLBACK_URL: process.env.FACEBOOK_CALLBACK_URL?.replace(/\/+/g, '/'),
+  FACEBOOK_CALLBACK_URL: process.env.FACEBOOK_CALLBACK_URL?.replace(
+    /\/+/g,
+    "/"
+  ),
   FACEBOOK_API_URL: process.env.FACEBOOK_API_URL,
   // AWS S3
   AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
