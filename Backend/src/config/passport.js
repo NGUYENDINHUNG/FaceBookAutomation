@@ -11,6 +11,8 @@ const getCallbackURL = (provider) => {
   return `${baseURL}/api/auth/${provider}/callback`;
 };
 
+console.log(getCallbackURL("facebook"));
+
 passport.use(
   new FacebookStrategy(
     {
