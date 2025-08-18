@@ -8,7 +8,7 @@ const getCallbackURL = (provider) => {
       ? process.env.SERVER_URL
       : "http://localhost:8000";
 
-  return `${baseURL}/v1/api/auth/${provider}/callback`;
+  return `${baseURL}/api/auth/${provider}/callback`;
 };
 
 passport.use(
