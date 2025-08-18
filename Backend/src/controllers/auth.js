@@ -15,19 +15,27 @@ export const loginFaceBook = async (req, res) => {
         httpOnly: true,
         maxAge: ms(process.env.JWT_REFRESH_EXPIRE),
       });
-      const redirectUrl = `${process.env.CORS_ORIGIN}?accessToken=${data.accessToken}`;
+      // Normalize frontend origin to ensure absolute redirect
+      const rawOrigin = (process.env.CORS_ORIGIN || "").trim().replace(/\/+$/, "");
+      const isAbsolute = /^https?:\/\//i.test(rawOrigin);
+      const appOrigin = isAbsolute ? rawOrigin : `https://${rawOrigin}`;
+      const redirectUrl = `${appOrigin}?accessToken=${data.accessToken}`;
       return res.redirect(redirectUrl);
     } else {
+      const rawOrigin = (process.env.CORS_ORIGIN || "").trim().replace(/\/+$/, "");
+      const isAbsolute = /^https?:\/\//i.test(rawOrigin);
+      const appOrigin = isAbsolute ? rawOrigin : `https://${rawOrigin}`;
       return res.redirect(
-        `${process.env.CORS_ORIGIN}/login?error=${encodeURIComponent(data.EM)}`
+        `${appOrigin}/login?error=${encodeURIComponent(data.EM)}`
       );
     }
   } catch (err) {
     console.error("Lỗi đăng nhập Facebook:", err);
+    const rawOrigin = (process.env.CORS_ORIGIN || "").trim().replace(/\/+$/, "");
+    const isAbsolute = /^https?:\/\//i.test(rawOrigin);
+    const appOrigin = isAbsolute ? rawOrigin : `https://${rawOrigin}`;
     return res.redirect(
-      `${process.env.CORS_ORIGIN}/login?error=${encodeURIComponent(
-        "Đăng nhập thất bại"
-      )}`
+      `${appOrigin}/login?error=${encodeURIComponent("Đăng nhập thất bại")}`
     );
   }
 };
