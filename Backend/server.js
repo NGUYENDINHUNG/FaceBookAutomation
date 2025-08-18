@@ -13,9 +13,9 @@ const port = environment.PORT;
 configExpress(app);
 
 //User routes
-app.use("/api/auth", AuthRouter);
-app.use("/api/page", PageRouter);
-app.use("/api/post", PostRouter);
+app.use("api/auth", AuthRouter);
+app.use("api/page", PageRouter);
+app.use("api/post", PostRouter);
 
 // Kết nối DB và start server
 const startServer = async () => {
