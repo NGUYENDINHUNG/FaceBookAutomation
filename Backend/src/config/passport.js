@@ -5,7 +5,7 @@ import { environment } from "./environment.js";
 const getCallbackURL = (provider) => {
   const baseURL =
     environment.NODE_ENV === "production"
-      ? process.env.SERVER_URL
+      ? process.env.SERVER_URL?.replace(/\/$/, '') // Loại bỏ dấu / ở cuối
       : "http://localhost:8000";
 
   return `${baseURL}/api/auth/${provider}/callback`;

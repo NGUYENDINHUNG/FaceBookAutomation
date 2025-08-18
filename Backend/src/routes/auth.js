@@ -11,8 +11,25 @@ import { verifyToken } from "../middlewares/Auth.js";
 
 const AuthRouter = express.Router();
 
+// AuthRouter.get(
+//   "/facebook",
+//   passport.authenticate("facebook", {
+//     scope: [
+//       "public_profile",
+//       "email",
+//       "pages_manage_posts",
+//       "pages_read_engagement",
+//       "pages_show_list",
+//     ],
+//   })
+// );
+
 AuthRouter.get(
   "/facebook",
+  (req, res, next) => {
+    console.log("Facebook login URL:", req.url);
+    next();
+  },
   passport.authenticate("facebook", {
     scope: [
       "public_profile",
